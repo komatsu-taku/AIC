@@ -132,3 +132,6 @@ def parse_args():
     parser.add_argument("--num_workers", type=int, default=2)
 
     return parser
+
+if __name__ == "__main__":
+    main(parse_args())
