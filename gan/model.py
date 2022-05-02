@@ -22,7 +22,7 @@ class Generator(nn.Module):
         self.fc3 = nn.Linear(256, 512, bias=False)
         self.bn3 = nn.BatchNorm2d(512)
         self.fc4 = nn.Linear(512, 1024, bias=False)
-        self.bn4 = nn.BarchNorm(1024)
+        self.bn4 = nn.BatchNorm2d(1024)
         self.lrelu = nn.LeakyReLU(inplace=True)
     
     def forward(self, x):
