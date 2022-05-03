@@ -34,4 +34,3 @@ class CNN(nn.Module):
         x = self.fc3(x)
 
         return x
-        

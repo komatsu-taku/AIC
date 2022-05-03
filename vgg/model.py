@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class VGG16(nn.Module):
     # 参考 : https://qiita.com/MuAuan/items/a3b846b4cdae27189587
     def __init__(self, num_classes):
@@ -39,6 +40,17 @@ class VGG16(nn.Module):
         # block4
         self.block4 = nn.Sequential(
             nn.Conv2d(256, 512, 3, 1, 1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(512, 512, 3, 1, 1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(512, 512, 3, 1, 1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2, 2)
+        )
+
+        # block5
+        self.block5 = nn.Sequential(
+            nn.Conv2d(512, 512, 3, 1, 1),
             nn.ReLU(inplace=True),
             nn.Conv2d(512, 512, 3, 1, 1),
             nn.ReLU(inplace=True),
