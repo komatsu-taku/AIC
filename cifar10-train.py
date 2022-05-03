@@ -2,12 +2,15 @@ from matplotlib import transforms
 import torch
 import torch.nn as nn
 from torch.utils import data
+from torch.utils.data import DataLoader
 from torchvision import datasets, transforms, models
+from torchinfo import summary
 import numpy as np
 import argparse
 from tqdm import tqdm
 
 from vgg.model import VGG, VGG16
+from cnn.model import CNN
 from utils.utils import load_checkpoint, save_checkpoint
 
 
@@ -15,13 +18,15 @@ def main(args: argparse.Namespace):
     
     # データセットの作成
     train_transforms = transforms.Compose([
-        transforms.RandomCrop(32, padding=4),
+        transforms.Resize((64, 64)),
+        # transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
     test_transforms = transforms.Compose([
+        transforms.Resize((64, 64)),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
@@ -32,7 +37,7 @@ def main(args: argparse.Namespace):
         transform = train_transforms,
         download=True
     )
-    train_dataloader = data.DataLoader(
+    train_dataloader = DataLoader(
         train_dataset, batch_size=args.batch_size,
         shuffle = True, drop_last=True, num_workers=args.num_workers
     )
@@ -43,19 +48,28 @@ def main(args: argparse.Namespace):
         transform = test_transforms,
         download = True,
     )
-    test_dataloader = data.DataLoader(
+    test_dataloader = DataLoader(
         test_dataset, batch_size = args.batch_size,
         shuffle = False, num_workers=args.num_workers
     )
 
     # モデルの作成
-    model = VGG16()
+    if args.model == "cnn":
+        model = CNN(num_classes=10)
+    elif args.model == "vgg":
+        model = VGG(num_classes=10)
+    elif args.model == "vgg16":
+        model = VGG16(num_classes=10)
+
+    # summary の表示
+    input_size = (64, 3, 64, 64)
+    summary(model, input_size)
 
     # loss 
     criterion = nn.CrossEntropyLoss()
 
     # optimizer
-    optimizer = torch.oprim.Adam(model.parameters(), lr=args.lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
     # gpu
     use_cuda = torch.cuda.is_available()
@@ -75,7 +89,7 @@ def main(args: argparse.Namespace):
     
     n_iter = start_n_iter
     for epoch in range(start_epoch, args.epochs):
-        # print(f"\n[Epochs {epoch +1}]")
+        print(f"\n[Epochs {epoch +1}]")
         model.train()
 
         for data in tqdm(train_dataloader):
@@ -118,20 +132,23 @@ def main(args: argparse.Namespace):
                 "n_iter" : n_iter,
                 "optim" : optimizer.state_dict()
             }
-            save_checkpoint(checkpoints, "model_checkpoints.ckpt")
+            save_checkpoint(checkpoints, f"{args.model}/checkpoints.ckpt")
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--lr", type=float, default=1e-3)
-    parser.add_argument("--resume", type=str, action="store_true")
-    parser.add_argument("--path_checkpoints", type=str, default="")
+    parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--path_checkpoints", type=str, default="./checkpoints/")
     parser.add_argument("--epochs", type=int, default=5)
     parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--num_workers", type=int, default=2)
+    parser.add_argument(
+        "--model", type=str, choices=["cnn", "vgg", "vgg16"], default="VGG"
+    )
 
-    return parser
+    return parser.parse_args()
 
 if __name__ == "__main__":
     main(parse_args())

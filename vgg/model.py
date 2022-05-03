@@ -49,7 +49,7 @@ class VGG16(nn.Module):
 
         # classifier
         self.classifier = nn.Sequential(
-            nn.Linear(25088, 4096),
+            nn.Linear(512*2*2, 4096),
             nn.ReLU(inplace=True),
             nn.Dropout(0.5),
             nn.Linear(4096, 4096),
@@ -106,7 +106,7 @@ class VGG(nn.Module):
         self.maxpool5 = nn.MaxPool2d(2, 2)
 
         # classifier
-        self.fc1 = nn.Linear(in_features=25088, out_features=4096)
+        self.fc1 = nn.Linear(in_features=512*2*2, out_features=4096)
         self.dropout1 = nn.Dropout(0.5)
         self.fc2 = nn.Linear(4096, 4096)
         self.dropout2 = nn.Dropout(0.5)

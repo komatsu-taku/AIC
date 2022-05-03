@@ -129,3 +129,6 @@ dmypy.json
 .pyre/
 
 test.*
+cifar10/
+latest_checkpoint.txt
+*.ckpt
