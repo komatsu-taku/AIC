@@ -1,24 +1,26 @@
-from matplotlib import transforms
+import argparse
+
+import numpy as np
 import torch
 import torch.nn as nn
+from matplotlib import transforms
 from torch.utils import data
 from torch.utils.data import DataLoader
-from torchvision import datasets, transforms, models
 from torchinfo import summary
-import numpy as np
-import argparse
+from torchvision import datasets, models, transforms
 from tqdm import tqdm
 
-from vgg.model import VGG, VGG16
 from cnn.model import CNN
+from resnet.model import BasicBlock, Bottleneck, ResNet, resnet50
 from utils.utils import load_checkpoint, save_checkpoint
+from vgg.model import VGG, VGG16
 
 
 def main(args: argparse.Namespace):
     
     # データセットの作成
     train_transforms = transforms.Compose([
-        transforms.Resize((64, 64)),
+        transforms.Resize((224, 224)),
         # transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
@@ -26,7 +28,7 @@ def main(args: argparse.Namespace):
     ])
 
     test_transforms = transforms.Compose([
-        transforms.Resize((64, 64)),
+        transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
@@ -60,6 +62,8 @@ def main(args: argparse.Namespace):
         model = VGG(num_classes=10)
     elif args.model == "vgg16":
         model = VGG16(num_classes=10)
+    elif args.model == "resnet":
+        model = resnet50(num_classes=10)
 
     # summary の表示
     input_size = (64, 3, 64, 64)
@@ -98,10 +102,11 @@ def main(args: argparse.Namespace):
                 images = images.cuda()
                 labels = labels.cuda()
             
+            optimizer.zero_grad()
             outputs = model(images)
             loss = criterion(outputs, labels)
 
-            optimizer.zero_grad()
+            torch.autograd.set_detect_anomaly(True)
             loss.backward()
             optimizer.step()
         
@@ -145,7 +150,7 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--num_workers", type=int, default=2)
     parser.add_argument(
-        "--model", type=str, choices=["cnn", "vgg", "vgg16"], default="VGG"
+        "--model", type=str, choices=["cnn", "vgg", "vgg16", "resnet"], default="VGG"
     )
 
     return parser.parse_args()

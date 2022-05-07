@@ -132,3 +132,5 @@ test.*
 cifar10/
 latest_checkpoint.txt
 *.ckpt
+.vscode/
+temp.*
