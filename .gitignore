@@ -130,6 +130,7 @@ dmypy.json
 
 test.*
 cifar10/
+mnist/
 latest_checkpoint.txt
 *.ckpt
 .vscode/
