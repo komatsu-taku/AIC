@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy
 import torch
 import torch.nn as nn
@@ -14,7 +15,7 @@ from mnist_model import Discrininator, Generator
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ハイパーパラメータの設定
-epochs = 30
+epochs = 1
 lr = 2e-4
 batch_size = 64
 loss = nn.BCELoss()
@@ -40,7 +41,7 @@ train_dataloader = DataLoader(
 # 学習の開始
 for epoch in range(epochs):
     print(f"Epochs{epoch} : ")
-    for idx, (images, _) in enumerate(train_dataloader):
+    for idx, (images, _) in enumerate(tqdm(train_dataloader)):
         # 本物の画像の生成
         real_images = images.to(device)
         real_outputs = discriminator(real_images)
@@ -80,6 +81,28 @@ for epoch in range(epochs):
             print(f'D_loss : {loss_D.item():.3f}')
             print(f'G_loss : {loss_G.item():.3f}')
         
-        if (epoch+1) % 10 == 0:
-            torch.save(generator, 'Generator_epoch_{}.pth'.format(epoch))
-            print('Model saved.')
+    # TODO epoch 10=>1に変更している(一時的)
+    if (epoch+1) % 1 == 0:
+        torch.save(generator, 'Generator_epoch_{}.pth'.format(epoch))
+        print('Model saved.')
+
+# 画像の表示
+for img, _ in train_dataloader:
+    print("real")
+    real_image = img[0][0]
+    print("real_image.shape : ", real_image.shape)
+    plt.imshow(real_image.reshape(28, 28))
+    plt.show()
+
+    # noiseの作成
+    noise = (torch.rand(img.shape[0], 128) - 0.5) / 0.5
+    print("noise : ", noise.size())
+    noise = noise.to(device)
+    gen_image = Generator(noise)
+
+    # 生成画像の表示
+    print('generated image')
+    plt.imshow(gen_image[0][0].cpu().detach().numpy().reshape(28, 28))
+    plt.show()
+    plt.close()
+    break
